@@ -71,8 +71,3 @@ AVAILABLE_TOOLS = {
     "book_viewing_appointment": book_viewing_appointment,
 }
 
-# Danh sách các tool được đăng ký để Agent sử dụng
-AVAILABLE_TOOLS = {
-    "get_weather": get_weather,
-    "search_flights": search_flights,
-}
