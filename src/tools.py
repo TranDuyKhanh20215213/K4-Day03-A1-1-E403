@@ -17,6 +17,8 @@ def search_apartments(location: str, max_price: int = 10000000) -> str:
         str: Danh sách phòng khả dụng kèm mã phòng, địa chỉ, giá và trạng thái
     """
     try:
+        if not isinstance(location, str) or not location.strip():
+            return "LỖI: Cần cung cấp khu vực tìm phòng."
         loc_lower = location.lower()
         mock_database = [
             {"id": "NT01", "name": "Căn hộ Studio Cầu Giấy", "address": "Số 12 Nguyễn Phong Sắc, Cầu Giấy, Hà Nội", "price": 5500000, "area": "Cầu Giấy", "status": "Còn trống"},
@@ -52,6 +54,8 @@ def book_viewing_appointment(room_id: str, date_time: str, customer_name: str, p
         str: Kết quả xác nhận đặt lịch hẹn hoặc thông báo lỗi
     """
     try:
+        if not room_id or not date_time or not customer_name or not phone:
+            return "LỖI: Cần cung cấp đầy đủ thông tin đặt lịch (mã phòng, thời gian, tên khách và số điện thoại)."
         valid_rooms = ["NT01", "NT02", "NT03", "NT04"]
 
         if room_id.upper() not in valid_rooms:
