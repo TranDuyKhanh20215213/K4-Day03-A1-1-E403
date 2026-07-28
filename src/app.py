@@ -55,7 +55,7 @@ def run_baseline_chatbot(user_query: str, provider):
 
 def print_tool_registry():
     """In ra danh sách tool mà Role 2 cung cấp cho Role 4 tích hợp."""
-    print("🧰 Tools: search_apartments, book_viewing_appointment")
+    print("🧰 Tools: search_apartments, check_landlord_schedule, book_viewing_appointment")
 
 
 def extract_booking_details(user_query: str):
@@ -306,6 +306,17 @@ def validate_tool_args(tool_name: str, args: list) -> str:
         args[1] = price
         return ""
 
+    if tool_name == "check_landlord_schedule":
+        if len(args) != 2:
+            return "LOI: check_landlord_schedule can 2 tham so: room_id, date."
+        room_id, date = [str(arg).strip() for arg in args]
+        if room_id.upper() not in VALID_ROOM_IDS:
+            return "LOI: Ma phong khong ton tai trong du lieu hien co."
+        if not date or len(date) > 80:
+            return "LOI: Ngay kiem tra lich khong hop le."
+        args[:] = [room_id.upper(), date]
+        return ""
+
     if tool_name == "book_viewing_appointment":
         if len(args) != 4:
             return "LOI: book_viewing_appointment can 4 tham so: room_id, date_time, customer_name, phone."
@@ -352,6 +363,7 @@ def build_react_prompt(user_query: str, scratchpad: str) -> str:
 
 Available tools:
 - search_apartments["location", max_price]
+- check_landlord_schedule["room_id", "date"]
 - book_viewing_appointment["room_id", "date_time", "customer_name", "phone"]
 
 Rules:
@@ -360,6 +372,7 @@ Rules:
 - If you need a tool, output exactly one Action line.
 - Use this exact Action format:
   Action: search_apartments["Cầu Giấy", 6000000]
+  Action: check_landlord_schedule["NT01", "ngày mai"]
   Action: book_viewing_appointment["NT01", "10:00 sáng ngày mai", "Phát", "0987654321"]
 - If enough information is available, output Final Answer.
 

@@ -6,6 +6,7 @@ Hỗ trợ chuyển đổi linh hoạt giữa các nhà cung cấp AI chỉ bằ
 import os
 import sys
 import json
+import re
 import requests
 from dotenv import load_dotenv
 
@@ -132,12 +133,83 @@ class OpenRouterProvider(BaseLLMProvider):
 
 
 class MockProvider(BaseLLMProvider):
-    """Offline Mock Provider (Cho bài test không cần kết nối API)"""
+    """Offline provider mô phỏng ReAct để chạy demo mà không cần API key."""
+
+    @staticmethod
+    def _extract_query_and_trace(prompt: str) -> tuple[str, str]:
+        """Tách câu hỏi và trace do app tạo từ ReAct prompt."""
+        query_match = re.search(
+            r"User Query:\s*(.*?)\n\s*Available tools:",
+            prompt,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        query = query_match.group(1).strip() if query_match else ""
+        trace = prompt.partition("Trace so far:")[2]
+        return query, trace
+
+    @staticmethod
+    def _find_location(query: str) -> str:
+        for location in ("Cầu Giấy", "Bình Thạnh", "Quận 7"):
+            if location.lower() in query.lower():
+                return location
+        return ""
+
+    @staticmethod
+    def _find_budget(query: str) -> int:
+        match = re.search(r"(?:dưới|tối đa|giá)\s*(\d+(?:[.,]\d+)?)\s*triệu", query, flags=re.IGNORECASE)
+        return int(float(match.group(1).replace(",", ".")) * 1_000_000) if match else 10_000_000
+
     def generate(self, prompt: str, system_prompt: str = "") -> str:
-        text = prompt.lower()
-        if "thời tiết" in text and "hà nội" in text:
-            return "Thought: Cần tra cứu thời tiết Hà Nội.\nAction: get_weather['Hà Nội']"
-        return "🤖 [Mock Provider]: Phản hồi giả lập offline cho bài test."
+        query, trace = self._extract_query_and_trace(prompt)
+
+        # Baseline không cần cấu trúc ReAct; chỉ đóng vai trò câu trả lời minh họa.
+        if not query:
+            return "Bạn nên cân nhắc vị trí, giá thuê, an ninh, chi phí điện nước và điều khoản hợp đồng trước khi thuê phòng."
+
+        normalized_query = query.lower()
+        normalized_trace = trace.lower()
+        needs_search = any(term in normalized_query for term in ("tìm", "phòng trọ", "căn hộ"))
+        needs_booking = any(term in normalized_query for term in ("đặt lịch", "xem phòng", "mã nt"))
+
+        if needs_search and "action: search_apartments" not in normalized_trace:
+            location = self._find_location(query)
+            if not location:
+                return "Thought: Tôi cần biết khu vực cần tìm phòng.\nFinal Answer: Bạn muốn tìm phòng ở khu vực nào?"
+            return (
+                "Thought: Tôi cần tra cứu phòng phù hợp với khu vực và ngân sách đã nêu.\n"
+                f'Action: search_apartments["{location}", {self._find_budget(query)}]'
+            )
+
+        room_match = re.search(r"\bNT\d+\b", query, flags=re.IGNORECASE)
+        room_id = room_match.group(0).upper() if room_match else ""
+        date_match = re.search(r"(ngày\s+mai|\d{1,2}/\d{1,2}/\d{4})", query, flags=re.IGNORECASE)
+        date = date_match.group(1) if date_match else "ngày mai"
+
+        if needs_booking and "action: check_landlord_schedule" not in normalized_trace:
+            if not room_id:
+                return "Thought: Tôi cần mã phòng trước khi kiểm tra lịch.\nFinal Answer: Vui lòng cung cấp mã phòng bạn muốn xem."
+            return (
+                "Thought: Tôi cần kiểm tra lịch trống của chủ nhà trước khi đặt lịch.\n"
+                f'Action: check_landlord_schedule["{room_id}", "{date}"]'
+            )
+
+        if needs_booking and "action: book_viewing_appointment" not in normalized_trace:
+            time_match = re.search(r"vào\s+(.+?)(?:\s+cho\s+|\s*\(\s*sđt|$)", query, flags=re.IGNORECASE)
+            name_match = re.search(r"\bcho\s+([^\s(,]+)", query, flags=re.IGNORECASE)
+            phone_match = re.search(r"\b\d{9,11}\b", query)
+            if not all((room_id, time_match, name_match, phone_match)):
+                return "Thought: Tôi chưa có đủ dữ liệu đặt lịch.\nFinal Answer: Vui lòng cung cấp mã phòng, thời gian, tên và số điện thoại."
+            return (
+                "Thought: Khung giờ yêu cầu đã được kiểm tra, tôi tiến hành đặt lịch xem phòng.\n"
+                f'Action: book_viewing_appointment["{room_id}", "{time_match.group(1).strip()}", '
+                f'"{name_match.group(1).strip()}", "{phone_match.group(0)}"]'
+            )
+
+        if needs_booking:
+            return "Thought: Tôi đã hoàn tất các công cụ cần thiết.\nFinal Answer: Đã kiểm tra lịch và đặt lịch xem phòng thành công."
+        if needs_search:
+            return "Thought: Tôi đã nhận được danh sách phòng từ công cụ.\nFinal Answer: Đây là các phòng phù hợp với khu vực và ngân sách của bạn."
+        return "Thought: Đây là câu hỏi tư vấn thông thường.\nFinal Answer: Tôi có thể hỗ trợ bạn tìm phòng hoặc đặt lịch xem phòng."
 
 
 def get_llm_provider(provider_name: str = None) -> BaseLLMProvider:

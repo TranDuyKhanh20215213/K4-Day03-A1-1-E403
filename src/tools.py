@@ -72,7 +72,48 @@ def book_viewing_appointment(room_id: str, date_time: str, customer_name: str, p
     except Exception as e:
         return f"LỖI HỆ THỐNG: Không thể đặt lịch xem phòng. Chi tiết: {str(e)}"
 
+
+def check_landlord_schedule(room_id: str, date: str) -> str:
+    """Kiểm tra các khung giờ chủ nhà còn trống cho một phòng trong ngày yêu cầu.
+
+    Args:
+        room_id: Mã phòng, ví dụ ``NT01``.
+        date: Ngày cần kiểm tra, ví dụ ``ngày mai`` hoặc ``30/07/2026``.
+
+    Returns:
+        Chuỗi liệt kê các khung giờ trống, hoặc thông báo lỗi rõ ràng.
+
+    Note:
+        Dữ liệu lịch là giả lập cho mục đích demo. Bản thực tế cần truy vấn
+        hệ thống lịch của chủ nhà.
+    """
+    try:
+        if not isinstance(room_id, str) or not room_id.strip():
+            return "LỖI: Cần cung cấp mã phòng để kiểm tra lịch chủ nhà."
+        if not isinstance(date, str) or not date.strip():
+            return "LỖI: Cần cung cấp ngày muốn xem phòng."
+
+        schedules = {
+            "NT01": ["09:00", "10:00", "15:00"],
+            "NT02": ["08:30", "13:30", "16:30"],
+            "NT03": ["09:30", "14:00", "17:00"],
+            "NT04": ["10:30", "13:00", "16:00"],
+        }
+        normalized_room_id = room_id.upper().strip()
+        if normalized_room_id not in schedules:
+            return f"LỖI THẤT BẠI: Mã phòng '{normalized_room_id}' không tồn tại hoặc không thể kiểm tra lịch."
+
+        return (
+            f"Lịch trống của chủ nhà cho phòng {normalized_room_id} vào {date.strip()}: "
+            f"{', '.join(schedules[normalized_room_id])}. "
+            "Vui lòng chọn một khung giờ trên trước khi đặt lịch."
+        )
+    except Exception as e:
+        return f"LỖI HỆ THỐNG: Không thể kiểm tra lịch chủ nhà. Chi tiết: {str(e)}"
+
+
 AVAILABLE_TOOLS = {
     "search_apartments": search_apartments,
+    "check_landlord_schedule": check_landlord_schedule,
     "book_viewing_appointment": book_viewing_appointment,
 }
