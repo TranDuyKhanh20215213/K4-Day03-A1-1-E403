@@ -1,36 +1,36 @@
 flowchart TD
     %% 🌟 SƠ ĐỒ HYBRID FLOWCHART ARCHITECTURE (ĐỀ TÀI 10: TRỢ LÝ TÌM & ĐẶT LỊCH XEM NHÀ TRỌ)
     
-    A["👤 User Input (Câu hỏi/Yêu cầu từ người dùng)"] --> B{"🧠 Intent Classifier / Router\n(Phân loại ý định người dùng)"}
+    A["👤 User Input - Câu hỏi từ người dùng"] --> B{"🧠 Intent Classifier / Router"}
 
     %% 🟢 ROUTE 1: SIMPLE CHATBOT PATH WITH CHATBOT_BASELINE_PROMPT
-    B -- "Câu hỏi đơn giản / Tư vấn chung\n(Kinh nghiệm, pháp lý, lưu ý thuê nhà)" --> C["💬 Chatbot Baseline Path"]
+    B -- "Tư vấn chung / Pháp lý / Kinh nghiệm" --> C["💬 Chatbot Baseline Path"]
     
     subgraph ChatbotPath ["📄 Chatbot Baseline Execution Path"]
-        C --> C1["📜 Prompt: CHATBOT_BASELINE_PROMPT\n('Bạn là Chatbot tư vấn thông thường...'\n- Trả lời thắc mắc chung, hợp đồng, kinh nghiệm\n- Không sử dụng Tool)"]
-        C1 --> C2["🤖 LLM Provider Direct Generation\n(Sinh câu trả lời trực tiếp từ kiến thức LLM)"]
+        C --> C1["📜 Prompt: CHATBOT_BASELINE_PROMPT<br/>- Trả lời thắc mắc chung, hợp đồng, kinh nghiệm<br/>- Không sử dụng Tool"]
+        C1 --> C2["🤖 LLM Provider Direct Generation<br/>- Sinh câu trả lời trực tiếp từ kiến thức LLM"]
     end
     
-    C2 --> Z["🏁 Final Output (Phản hồi gửi người dùng)"]
+    C2 --> Z["🏁 Final Output - Phản hồi gửi người dùng"]
 
     %% 🟡 ROUTE 2: REACT AGENT PATH WITH REACT_SYSTEM_PROMPT
-    B -- "Yêu cầu tra cứu / Đặt lịch xem phòng\n(Cần dữ liệu thực tế hoặc thao tác)" --> D["🤖 ReAct Agent Path"]
+    B -- "Yêu cầu tra cứu / Đặt lịch xem phòng" --> D["🤖 ReAct Agent Path"]
     
     subgraph ReActPath ["🔄 ReAct Agent Loop & Safeguards"]
-        D --> D1["📜 Prompt: REACT_SYSTEM_PROMPT\n('Bạn là ReAct Agent chuyên nghiệp...'\n- Ép cấu trúc Thought -> Action -> Observation\n- Quy tắc thu thập thông tin khi thiếu\n- Cấu hình Phanh An Toàn Guardrails)")
+        D --> D1["📜 Prompt: REACT_SYSTEM_PROMPT<br/>- Ép cấu trúc Thought -> Action -> Observation<br/>- Quy tắc thu thập thông tin khi thiếu<br/>- Cấu hình Phanh An Toàn Guardrails"]
         D1 --> E["🧠 Thought: Suy luận logic, phân tích câu hỏi & chọn Tool"]
         E --> F{"🛠️ Check Tool Specs & Call Tool"}
         
         F -- "1. Tra cứu phòng trọ" --> G["Action: search_apartments[location, max_price]"]
         F -- "2. Đặt lịch xem phòng" --> H["Action: book_viewing_appointment[room_id, date_time, customer_name, phone]"]
         
-        G --> I["👁️ Observation: Kết quả thực tế từ Database / System Error"]
+        G --> I["👁️ Observation: Kết quả từ Database hoặc System Error"]
         H --> I
         
-        I --> J{"🛡️ Guardrails Check\n(MAX_ITERATIONS = 3)"}
+        I --> J{"🛡️ Guardrails Check<br/>MAX_ITERATIONS = 3"}
         
-        J -- "Thành công / Đủ thông tin" --> K["Thought: Đã đủ thông tin\nFinal Answer: Trả lời kết quả cuối cùng"]
-        J -- "Chưa đủ thông tin / Lỗi mã phòng / Vượt bước" --> L["🛡️ Safe Fallback / Đặt câu hỏi cụ thể để hỏi lại người dùng"]
+        J -- "Thành công / Đủ thông tin" --> K["Thought: Đã đủ thông tin<br/>Final Answer: Trả lời kết quả cuối cùng"]
+        J -- "Chưa đủ thông tin / Lỗi mã phòng / Vượt bước" --> L["🛡️ Safe Fallback / Hỏi lại người dùng"]
     end
 
     K --> Z
