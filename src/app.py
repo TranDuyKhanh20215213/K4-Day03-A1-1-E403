@@ -65,12 +65,19 @@ def run_react_agent(user_query: str, provider):
     print_tool_registry()
     step = 0
     normalized_query = user_query.lower()
+    needs_search = any(keyword in normalized_query for keyword in ["tìm", "phòng", "căn hộ", "nhà trọ", "thuê"])
+    needs_booking = any(keyword in normalized_query for keyword in ["đặt lịch", "xem phòng", "xem nhà", "hẹn"])
 
     while step < MAX_ITERATIONS:
         step += 1
         print(f"\n--- 🔄 Vòng lặp ReAct (Step {step}/{MAX_ITERATIONS}) ---")
 
-        if "tìm" in normalized_query or "phòng" in normalized_query or "căn hộ" in normalized_query:
+        if step == 1:
+            if not needs_search:
+                print("🧠 Thought: Câu hỏi không yêu cầu tìm phòng, nên không cần gọi tool.")
+                print("🏁 Final Answer: Tôi chỉ hỗ trợ tìm phòng và đặt lịch xem phòng trong đề tài này.")
+                break
+
             print("🧠 Thought: Người dùng cần tìm phòng phù hợp theo khu vực và ngân sách.")
             print("🛠️ Action: search_apartments['Cầu Giấy', 6000000]")
             try:
@@ -81,18 +88,30 @@ def run_react_agent(user_query: str, provider):
                 print("🛡️ Guardrail: Dừng vòng lặp và trả về thông báo an toàn.")
                 break
 
-            if "đặt lịch" in normalized_query or "xem phòng" in normalized_query:
-                print("🧠 Thought: Người dùng còn muốn đặt lịch xem phòng, nên cần chốt lịch hẹn.")
-                print("🛠️ Action: book_viewing_appointment['NT01', '10:00 sáng ngày mai', 'Phát', '0987654321']")
-                try:
-                    obs = book_viewing_appointment("NT01", "10:00 sáng ngày mai", "Phát", "0987654321")
-                    print(f"👁️ Observation: {obs}")
-                except Exception as exc:
-                    print(f"⚠️ Observation: Tool lỗi - {exc}")
-                    print("🛡️ Guardrail: Dừng vòng lặp và trả về thông báo an toàn.")
-                    break
+            if not needs_booking:
+                print("🏁 Final Answer: Tôi đã tìm phòng phù hợp cho người dùng.")
+                break
+            continue
 
-            print("🏁 Final Answer: Tôi đã sử dụng tool để tìm phòng và, nếu cần, đặt lịch xem phòng cho người dùng.")
+        if step == 2:
+            if not needs_booking:
+                print("🏁 Final Answer: Tôi đã xử lý xong bước tìm phòng.")
+                break
+
+            print("🧠 Thought: Người dùng còn muốn đặt lịch xem phòng, nên cần chốt lịch hẹn.")
+            print("🛠️ Action: book_viewing_appointment['NT01', '10:00 sáng ngày mai', 'Phát', '0987654321']")
+            try:
+                obs = book_viewing_appointment("NT01", "10:00 sáng ngày mai", "Phát", "0987654321")
+                print(f"👁️ Observation: {obs}")
+            except Exception as exc:
+                print(f"⚠️ Observation: Tool lỗi - {exc}")
+                print("🛡️ Guardrail: Dừng vòng lặp và trả về thông báo an toàn.")
+                break
+            continue
+
+        if step == 3:
+            print("🧠 Thought: Đã có đủ thông tin, tôi sẽ tổng hợp kết quả cuối cùng.")
+            print("🏁 Final Answer: Tôi đã tìm phòng và, nếu cần, đặt lịch xem phòng thành công.")
             break
 
         print("🏁 Final Answer: Tôi chưa nhận diện được hành động cụ thể từ câu hỏi này.")
