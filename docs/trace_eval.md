@@ -63,15 +63,38 @@ Chúc anh Phát ngày mai có một buổi xem phòng thuận lợi và ưng ý!
 ---
 
 ### 🧠 ReAct Agent (Cấp 3 - ReAct Agent):
-* **Thought 1**: Người dùng cần tìm phòng trọ tại Cầu Giấy, ngân sách < 5 triệu/tháng, có điều hòa. Tôi cần gọi tool `search_apartments` để tìm danh sách các phòng khả dụng.
-* **Action 1**: `search_apartments[district='Cầu Giấy', max_price=5000000, amenities='điều hòa']`
-* **Observation 1**: `Tìm thấy 2 phòng phù hợp: 1. Phòng 302 ngõ 123 Cầu Giấy (4.5 triệu/tháng, ĐH, NL, ban công); 2. Phòng 101 ngõ 68 Xuân Thủy (4.8 triệu/tháng, ĐH, khép kín).`
-* **Thought 2**: Phòng 302 ngõ 123 Cầu Giấy khớp với tiêu chí tốt nhất. Người dùng muốn xem phòng vào 15:00 chiều thứ 7 (01/08/2026). Tôi cần gọi tool `check_landlord_schedule` để xem chủ nhà phòng 302 có rảnh khung giờ này không.
-* **Action 2**: `check_landlord_schedule[apartment_id='CG-302', date='2026-08-01']`
-* **Observation 2**: `Chủ nhà rảnh các khung giờ: 14:00 - 16:00 và 17:00 - 18:30.`
-* **Thought 3**: Khung giờ 15:00 rảnh. Tôi tiến hành gọi tool `book_viewing_appointment` để đặt lịch xem phòng cho người dùng.
-* **Action 3**: `book_viewing_appointment[apartment_id='CG-302', date_time='2026-08-01 15:00', user_contact='0912345678']`
-* **Observation 3**: `Đặt lịch thành công! Mã cuộc hẹn: BK-9921. Liên hệ chủ nhà: Anh Nam (0987654321).`
-* **Thought 4**: Đã tìm thấy phòng trọ phù hợp và hoàn tất việc đặt lịch xem phòng. Tôi sẽ tổng hợp kết quả trả lời người dùng.
-* **Final Answer**: *"Tôi đã tìm thấy phòng trọ phù hợp tại 302 ngõ 123 Cầu Giấy (giá 4.5 triệu/tháng, đầy đủ điều hòa) và đặt thành công lịch xem phòng cho bạn vào 15:00 chiều Thứ 7 (01/08/2026). Mã cuộc hẹn: BK-9921. SĐT chủ nhà (Anh Nam): 0987654321."*
-* **Nhận xét**: ReAct Agent giải quyết trọn vẹn yêu cầu nhờ quy trình suy luận 4 bước (`Thought -> Action -> Observation`), tương tác linh hoạt với các công cụ tra cứu dữ liệu thời gian thực và thực hiện hành động đặt lịch tự động.
+💬 [CHATBOT BASELINE] Tìm phòng trọ ở Cầu Giấy giá dưới 6 triệu, sau đó đặt lịch xem phòng NT01 vào 10:00 sáng ngày mai cho Phát (SĐT: 0987654321).
+🤖 Chào bạn Phát!
+
+Rất vui được hỗ trợ bạn trong việc tìm phòng trọ tại Cầu Giấy với mức giá dưới 6 triệu. Tuy nhiên, để đặt lịch xem phòng NT01, bạn cần liên hệ trực tiếp với chủ nhà hoặc môi giới của phòng đó để xác nhận thời gian và thông tin cụ thể.
+
+Dưới đây là một số lưu ý khi bạn đi xem phòng trọ:
+1. **Kiểm tra thực tế**: Hãy xem xét kỹ lưỡng tình trạng của phòng, các thiết bị và nội thất có hoạt động tốt không.
+2. **Hợp đồng thuê**: Đảm bảo rằng bạn đọc kỹ hợp đồng trước khi ký, chú ý đến các điều khoản rõ ràng và công bằng.
+3. **Chi phí phụ thêm**: Hãy hỏi chủ nhà về các khoản phí phát sinh như điện, nước, internet để có tổng chi phí chính xác.
+
+Nếu bạn cần thêm thông tin về danh sách phòng trọ hay kinh nghiệm thuê nhà, hãy cho tôi biết nhé! Chúc bạn tìm được phòng trọ ưng ý!
+
+--- ReAct ---
+
+🤖 [REACT AGENT] Tìm phòng trọ ở Cầu Giấy giá dưới 6 triệu, sau đó đặt lịch xem phòng NT01 vào 10:00 sáng ngày mai cho Phát (SĐT: 0987654321).
+🧰 Tools: search_apartments, book_viewing_appointment
+
+--- Step 1/2 ---
+🧠 Thought: cần tìm phòng phù hợp
+🛠️ Action: search_apartments(Cầu Giấy, 6000000)
+👁️ Tìm thấy 2 lựa chọn phù hợp tại 'Cầu Giấy' (Giá <= 6,000,000 VNĐ):
+- Mã phòng: [NT01] | Căn hộ Studio Cầu Giấy - Địa chỉ: Số 12 Nguyễn Phong Sắc, Cầu Giấy, Hà Nội - Giá: 5,500,000 VNĐ/tháng (Còn trống)
+- Mã phòng: [NT02] | Phòng trọ khép kín Cầu Giấy - Địa chỉ: Ngõ 155 Cầu Giấy, Hà Nội - Giá: 3,800,000 VNĐ/tháng (Còn trống)
+
+--- Step 2/2 ---
+🧠 Thought: cần đặt lịch xem phòng
+🛠️ Action: book_viewing_appointment(NT01, 10:00 sáng ngày mai, Phát, 0987654321)
+👁️ ✅ ĐẶT LỊCH THÀNH CÔNG!
+- Mã phòng: NT01
+- Khách hàng: Phát
+- SĐT liên hệ: 0987654321
+- Thời gian hẹn xem phòng: 10:00 sáng ngày mai
+Nhân viên quản lý phòng sẽ gọi điện xác nhận lại với bạn trước 30 phút.
+🏁 Hoàn tất
+
