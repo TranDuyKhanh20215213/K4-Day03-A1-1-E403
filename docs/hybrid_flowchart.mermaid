@@ -4,17 +4,17 @@ flowchart TD
     A["👤 User Input - Câu hỏi từ người dùng"] --> B{"🧠 Intent Classifier / Router"}
 
     %% 🟢 ROUTE 1: SIMPLE CHATBOT PATH WITH CHATBOT_BASELINE_PROMPT
-    B -- "Tư vấn chung / Pháp lý / Kinh nghiệm" --> C["💬 Chatbot Baseline Path"]
+    B -- "Câu hỏi Đơn giản" --> C["💬 Chatbot Baseline Path"]
     
     subgraph ChatbotPath ["📄 Chatbot Baseline Execution Path"]
-        C --> C1["📜 Prompt: CHATBOT_BASELINE_PROMPT<br/>- Trả lời thắc mắc chung, hợp đồng, kinh nghiệm<br/>- Không sử dụng Tool"]
+        C --> C1["📜 Prompt: CHATBOT_BASELINE_PROMPT<br/>- Trả lời thắc mắc chung<br/>- Không sử dụng Tool"]
         C1 --> C2["🤖 LLM Provider Direct Generation<br/>- Sinh câu trả lời trực tiếp từ kiến thức LLM"]
     end
     
     C2 --> Z["🏁 Final Output - Phản hồi gửi người dùng"]
 
     %% 🟡 ROUTE 2: REACT AGENT PATH WITH REACT_SYSTEM_PROMPT
-    B -- "Yêu cầu tra cứu / Đặt lịch xem phòng" --> D["🤖 ReAct Agent Path"]
+    B -- "Câu hỏi phức tạp" --> D["🤖 ReAct Agent Path"]
     
     subgraph ReActPath ["🔄 ReAct Agent Loop & Safeguards"]
         D --> D1["📜 Prompt: REACT_SYSTEM_PROMPT<br/>- Ép cấu trúc Thought -> Action -> Observation<br/>- Quy tắc thu thập thông tin khi thiếu<br/>- Cấu hình Phanh An Toàn Guardrails"]
