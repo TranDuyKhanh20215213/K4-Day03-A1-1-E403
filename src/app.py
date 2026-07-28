@@ -40,151 +40,16 @@ def run_baseline_chatbot(user_query: str, provider):
     print(f"🤖 {provider.generate(user_query, system_prompt=CHATBOT_BASELINE_PROMPT)}")
 
 
-def extract_booking_details(user_query: str):
-    """Trích xuất thông tin đặt lịch từ câu hỏi người dùng."""
-    room_id = None
-    room_match = re.search(r"\bNT\d+\b", user_query.upper())
-    if room_match:
-        room_id = room_match.group(0)
-
-    date_time = None
-    time_match = re.search(r"vào\s+(.+?)(?:\s+cho\b|$)", user_query, flags=re.IGNORECASE)
-    if time_match:
-        date_time = time_match.group(1).strip()
-    else:
-        date_match = re.search(r"\b\d{1,2}/\d{1,2}/\d{4}\b", user_query)
-        if date_match:
-            date_time = date_match.group(0)
-
-    customer_name = None
-    name_patterns = [
-        r"\bkhách\s+hàng\s+([A-ZÀ-Ỹ][\wÀ-ỹ-]*)",
-        r"\btên\s+([A-ZÀ-Ỹ][\wÀ-ỹ-]*)",
-        r"\bcho\s+([A-ZÀ-Ỹ][\wÀ-ỹ-]*)",
-    ]
-    for pattern in name_patterns:
-        name_match = re.search(pattern, user_query, flags=re.IGNORECASE)
-        if name_match:
-            candidate = name_match.group(1).strip()
-            if candidate.lower() not in {"khách", "hàng", "người"}:
-                customer_name = candidate
-                break
-
-    phone = None
-    phone_match = re.search(r"\b\d{9,11}\b", user_query)
-    if phone_match:
-        phone = phone_match.group(0)
-
-    return room_id, date_time, customer_name, phone
-
-
-def extract_search_context(user_query: str):
-    """Trích xuất ngữ cảnh tìm phòng từ câu hỏi, nếu có."""
-    normalized_query = user_query.lower()
-    location = None
-
-    patterns = [
-        r"\b(?:ở khu vực|tại|khu vực|ở)\s+([A-Za-zÀ-Ỹà-ỹ0-9-]+(?:\s+[A-Za-zÀ-Ỹà-ỹ0-9-]+){0,1})",
-        r"\btìm\s+(?:phòng trọ|căn hộ|nhà|phòng)\s+(?:ở|tại)\s+([A-Za-zÀ-Ỹà-ỹ0-9-]+(?:\s+[A-Za-zÀ-Ỹà-ỹ0-9-]+){0,1})",
-        r"\btìm\s+giúp\s+tôi.*?\s(?:ở|tại)\s+([A-Za-zÀ-Ỹà-ỹ0-9-]+(?:\s+[A-Za-zÀ-Ỹà-ỹ0-9-]+){0,1})",
-    ]
-    for pattern in patterns:
-        match = re.search(pattern, user_query, flags=re.IGNORECASE)
-        if match:
-            candidate = match.group(1).strip()
-            candidate = re.split(r"\s+(?:giá|dưới|triệu|nghìn|tháng|sau|đó|vào|cho|cần|với|có|là)\b", candidate, maxsplit=1, flags=re.IGNORECASE)[0]
-            candidate = candidate.strip(" ,.;:-")
-            if candidate and len(candidate.split()) <= 4:
-                location = candidate
-                break
-
-    max_price = None
-    price_patterns = [
-        r"(?:dưới|giá dưới)\s+(\d+(?:[.,]\d+)?)\s*(triệu|nghìn)?",
-        r"(?:dưới|giá dưới)\s+(\d+)",
-    ]
-    for pattern in price_patterns:
-        price_match = re.search(pattern, normalized_query)
-        if price_match:
-            value = float(price_match.group(1).replace(",", "."))
-            unit = price_match.group(2) or ""
-            if unit == "triệu":
-                max_price = int(value * 1000000)
-            elif unit == "nghìn":
-                max_price = int(value * 1000)
-            else:
-                max_price = int(value)
-            break
-
-    return location, max_price
-
-
-def infer_task_plan(user_query: str):
-    """Phân loại yêu cầu thành chuỗi công việc linh hoạt: tìm phòng, đặt lịch, hoặc cả hai."""
-    normalized_query = user_query.lower()
-    search_keywords = ["tìm", "tìm kiếm", "giá dưới", "khu vực", "thuê", "căn hộ", "nhà trọ", "trọ", "ở"]
-    booking_keywords = ["đặt lịch", "xem phòng", "xem nhà", "hẹn", "mã phòng", "lịch hẹn"]
-    has_room_ref = bool(re.search(r"\bnt\d+\b", normalized_query))
-
-    needs_search = any(keyword in normalized_query for keyword in search_keywords)
-    needs_booking = any(keyword in normalized_query for keyword in booking_keywords) or has_room_ref
-
-    if needs_search and needs_booking:
-        return ["search", "booking"]
-    if needs_search:
-        return ["search"]
-    if needs_booking:
-        return ["booking"]
-    return []
-
-
-def is_tool_failure(result: str) -> bool:
-    """Phát hiện khi tool trả về lỗi hoặc đầu vào không hợp lệ."""
-    lowered = result.lower()
-    return any(marker in lowered for marker in ["lỗi", "không thể", "không hợp lệ", "không tồn tại", "đã hết phòng", "không tìm thấy"])
-
-
-def strip_accents(text: str) -> str:
-    """Normalize text for lightweight safety checks."""
-    normalized = unicodedata.normalize("NFD", text)
-    return "".join(ch for ch in normalized if unicodedata.category(ch) != "Mn").lower()
-
-
-def detect_prompt_injection(user_query: str) -> bool:
-    """Detect common attempts to override system/tool instructions."""
-    normalized = strip_accents(user_query)
-    suspicious_patterns = [
-        "ignore previous instructions",
-        "ignore all previous instructions",
-        "bo qua huong dan",
-        "bo qua tat ca huong dan",
-        "tiet lo system prompt",
-        "in system prompt",
-        "reveal system prompt",
-        "print system prompt",
-        "api key",
-        "secret",
-        "delete_database",
-        "xoa database",
-        "goi tool khong duoc phep",
-        "bypass guardrail",
-    ]
-    return any(pattern in normalized for pattern in suspicious_patterns)
-
-
-def is_provider_error(response: str) -> bool:
-    """Identify provider/network errors so the app can use deterministic fallback."""
-    lowered = strip_accents(response)
-    return any(
-        marker in lowered
-        for marker in [
-            " exception]",
-            " error]",
-            "connection error",
-            "chua cau hinh",
-            "mock provider",
-            "phan hoi gia lap offline",
-        ]
+def extract_booking_details(query: str):
+    room = re.search(r"\bNT\d+\b", query, flags=re.IGNORECASE)
+    time = re.search(r"vào\s+(.+?)(?:\s+cho\b|$)", query, flags=re.IGNORECASE)
+    name = re.search(r"\bcho\s+([^\s(,]+)", query, flags=re.IGNORECASE)
+    phone = re.search(r"\b\d{9,11}\b", query)
+    return (
+        room.group(0).upper() if room else None,
+        time.group(1).strip() if time else None,
+        name.group(1).strip() if name else None,
+        phone.group(0) if phone else None,
     )
 
 
