@@ -73,14 +73,24 @@ def run_react_agent(user_query: str, provider):
         if "tìm" in normalized_query or "phòng" in normalized_query or "căn hộ" in normalized_query:
             print("🧠 Thought: Người dùng cần tìm phòng phù hợp theo khu vực và ngân sách.")
             print("🛠️ Action: search_apartments['Cầu Giấy', 6000000]")
-            obs = search_apartments("Cầu Giấy", 6000000)
-            print(f"👁️ Observation: {obs}")
+            try:
+                obs = search_apartments("Cầu Giấy", 6000000)
+                print(f"👁️ Observation: {obs}")
+            except Exception as exc:
+                print(f"⚠️ Observation: Tool lỗi - {exc}")
+                print("🛡️ Guardrail: Dừng vòng lặp và trả về thông báo an toàn.")
+                break
 
             if "đặt lịch" in normalized_query or "xem phòng" in normalized_query:
                 print("🧠 Thought: Người dùng còn muốn đặt lịch xem phòng, nên cần chốt lịch hẹn.")
                 print("🛠️ Action: book_viewing_appointment['NT01', '10:00 sáng ngày mai', 'Phát', '0987654321']")
-                obs = book_viewing_appointment("NT01", "10:00 sáng ngày mai", "Phát", "0987654321")
-                print(f"👁️ Observation: {obs}")
+                try:
+                    obs = book_viewing_appointment("NT01", "10:00 sáng ngày mai", "Phát", "0987654321")
+                    print(f"👁️ Observation: {obs}")
+                except Exception as exc:
+                    print(f"⚠️ Observation: Tool lỗi - {exc}")
+                    print("🛡️ Guardrail: Dừng vòng lặp và trả về thông báo an toàn.")
+                    break
 
             print("🏁 Final Answer: Tôi đã sử dụng tool để tìm phòng và, nếu cần, đặt lịch xem phòng cho người dùng.")
             break
