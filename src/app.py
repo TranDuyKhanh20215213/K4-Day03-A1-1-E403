@@ -50,30 +50,43 @@ def run_baseline_chatbot(user_query: str, provider):
     print(f"🤖 Chatbot trả lời:\n{response}")
 
 
+def print_tool_registry():
+    """In ra danh sách tool mà Role 2 cung cấp cho Role 4 tích hợp."""
+    print("\n🧰 Tool registry cho ReAct Agent:")
+    for name in AVAILABLE_TOOLS:
+        print(f" - {name}")
+
+
 def run_react_agent(user_query: str, provider):
     """
     Dựng vòng lặp ReAct Agent (Thought -> Action -> Observation) có Guardrails.
     """
     print(f"\n🤖 [REACT AGENT] Câu hỏi: {user_query}")
+    print_tool_registry()
     step = 0
+    normalized_query = user_query.lower()
 
     while step < MAX_ITERATIONS:
         step += 1
         print(f"\n--- 🔄 Vòng lặp ReAct (Step {step}/{MAX_ITERATIONS}) ---")
 
-        if step == 1:
-            print("🧠 Thought: Người dùng cần tìm phòng trọ hoặc căn hộ phù hợp theo khu vực và ngân sách.")
+        if "tìm" in normalized_query or "phòng" in normalized_query or "căn hộ" in normalized_query:
+            print("🧠 Thought: Người dùng cần tìm phòng phù hợp theo khu vực và ngân sách.")
             print("🛠️ Action: search_apartments['Cầu Giấy', 6000000]")
             obs = search_apartments("Cầu Giấy", 6000000)
             print(f"👁️ Observation: {obs}")
 
-        elif step == 2:
-            print("🧠 Thought: Người dùng có nhu cầu đặt lịch xem phòng, nên cần chốt lịch hẹn.")
-            print("🛠️ Action: book_viewing_appointment['NT01', '10:00 sáng ngày mai', 'Phát', '0987654321']")
-            obs = book_viewing_appointment("NT01", "10:00 sáng ngày mai", "Phát", "0987654321")
-            print(f"👁️ Observation: {obs}")
-            print("🏁 Final Answer: Tôi đã tìm được phòng phù hợp và đặt lịch xem phòng thành công cho người dùng.")
+            if "đặt lịch" in normalized_query or "xem phòng" in normalized_query:
+                print("🧠 Thought: Người dùng còn muốn đặt lịch xem phòng, nên cần chốt lịch hẹn.")
+                print("🛠️ Action: book_viewing_appointment['NT01', '10:00 sáng ngày mai', 'Phát', '0987654321']")
+                obs = book_viewing_appointment("NT01", "10:00 sáng ngày mai", "Phát", "0987654321")
+                print(f"👁️ Observation: {obs}")
+
+            print("🏁 Final Answer: Tôi đã sử dụng tool để tìm phòng và, nếu cần, đặt lịch xem phòng cho người dùng.")
             break
+
+        print("🏁 Final Answer: Tôi chưa nhận diện được hành động cụ thể từ câu hỏi này.")
+        break
 
     if step >= MAX_ITERATIONS:
         print(f"🛡️ GUARDRAIL TRIGGERED: Đã đạt giới hạn tối đa {MAX_ITERATIONS} bước. Ngắt lặp an toàn!")
@@ -92,11 +105,13 @@ if __name__ == "__main__":
     tests = load_test_cases()
     print(f"✅ Đã tải thành công {len(tests)} Test Cases từ config/test_cases.json\n")
     
-    # Chạy thử câu test số 3
-    sample_query = tests[2]["question"]
-    
-    print("--- DEMO 1: CHẠY TRÊN CHATBOT BASELINE ---")
-    run_baseline_chatbot(sample_query, provider)
-    
-    print("\n--- DEMO 2: CHẠY TRÊN REACT AGENT ---")
-    run_react_agent(sample_query, provider)
+    # Chạy thử các câu test phù hợp với Mốc 2: tìm phòng và đặt lịch xem nhà
+    demo_queries = [tests[2]["question"], tests[3]["question"]]
+
+    for index, sample_query in enumerate(demo_queries, start=1):
+        print(f"\n=== DEMO {index} ===")
+        print("--- CHẠY TRÊN CHATBOT BASELINE ---")
+        run_baseline_chatbot(sample_query, provider)
+
+        print("\n--- CHẠY TRÊN REACT AGENT ---")
+        run_react_agent(sample_query, provider)
