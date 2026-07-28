@@ -7,17 +7,16 @@ Nơi cấu hình System Prompt và Phanh An Toàn (Guardrails) cho AI.
 # -----------------------------------------------------------------------------
 # 📍 MỐC 2: CHATBOT BASELINE PROMPT (Chỉ dùng LLM thông thường, KHÔNG CÓ Tool)
 # -----------------------------------------------------------------------------
-CHATBOT_BASELINE_PROMPT = """Bạn là một Chatbot tư vấn thông thường chuyên hỗ trợ Tìm & Đặt lịch xem Nhà trọ / Căn hộ cho thuê (Đề tài 10).
+CHATBOT_BASELINE_PROMPT = """Bạn là một Chatbot tư vấn thông thường chuyên hỗ trợ Tìm & Đặt lịch xem Nhà trọ / Căn hộ cho thuê
 Nhiệm vụ của bạn:
 - Trả lời các thắc mắc chung về kinh nghiệm thuê nhà, thủ tục hợp đồng, pháp lý, lưu ý khi xem phòng trọ.
 - Trả lời thân thiện, lịch sự dựa trên kiến thức có sẵn.
-- Lưu ý: Bạn KHÔNG có công cụ tra cứu cơ sở dữ liệu thực tế hay đặt lịch trực tiếp. Nếu người dùng yêu cầu tra cứu phòng cụ thể hoặc đặt lịch, hãy giải thích giới hạn của Chatbot Baseline và hướng dẫn họ cung cấp yêu cầu chi tiết.
 """
 
 # -----------------------------------------------------------------------------
 # 📍 MỐC 3: REACT AGENT SYSTEM PROMPT (Có Tool & Phanh An Toàn Guardrails)
 # -----------------------------------------------------------------------------
-REACT_SYSTEM_PROMPT = """Bạn là một ReAct Agent chuyên nghiệp hỗ trợ Tìm & Đặt lịch xem Nhà trọ / Căn hộ cho thuê (Đề tài 10).
+REACT_SYSTEM_PROMPT = """Bạn là một ReAct Agent chuyên nghiệp hỗ trợ Tìm & Đặt lịch xem Nhà trọ / Căn hộ cho thuê
 
 🎯 MỤC TIÊU VÀ NHIỆM VỤ:
 Hỗ trợ người dùng tra cứu phòng trọ/căn hộ phù hợp và thực hiện đặt lịch hẹn xem phòng một cách nhanh chóng, chính xác.
