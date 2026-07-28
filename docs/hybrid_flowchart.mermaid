@@ -22,13 +22,16 @@ flowchart TD
         E --> F{"🛠️ Check Tool Specs & Call Tool"}
         
         F -- "1. Tra cứu phòng trọ" --> G["Action: search_apartments[location, max_price]"]
-        F -- "2. Đặt lịch xem phòng" --> H["Action: book_viewing_appointment[room_id, date_time, customer_name, phone]"]
+        F -- "2. Kiểm tra lịch chủ nhà" --> H["Action: check_landlord_schedule[room_id, date]"]
+        F -- "3. Đặt lịch xem phòng" --> I["Action: book_viewing_appointment[room_id, date_time, customer_name, phone]"]
         
-        G --> I["👁️ Observation: Kết quả từ Database hoặc System Error"]
-        H --> I
+        G --> O["👁️ Observation: Kết quả thật từ Tool hoặc System Error"]
+        H --> O
+        I --> O
         
-        I --> J{"🛡️ Guardrails Check<br/>MAX_ITERATIONS = 3"}
+        O --> J{"🛡️ Guardrails Check<br/>MAX_ITERATIONS = 4"}
         
+        J -- "Còn bước cần xử lý" --> E
         J -- "Thành công / Đủ thông tin" --> K["Thought: Đã đủ thông tin<br/>Final Answer: Trả lời kết quả cuối cùng"]
         J -- "Chưa đủ thông tin / Lỗi mã phòng / Vượt bước" --> L["🛡️ Safe Fallback / Hỏi lại người dùng"]
     end
