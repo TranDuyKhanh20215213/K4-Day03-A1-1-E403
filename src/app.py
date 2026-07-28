@@ -193,7 +193,17 @@ def detect_prompt_injection(user_query: str) -> bool:
 def is_provider_error(response: str) -> bool:
     """Identify provider/network errors so the app can use deterministic fallback."""
     lowered = strip_accents(response)
-    return any(marker in lowered for marker in [" exception]", " error]", "connection error", "chua cau hinh"])
+    return any(
+        marker in lowered
+        for marker in [
+            " exception]",
+            " error]",
+            "connection error",
+            "chua cau hinh",
+            "mock provider",
+            "phan hoi gia lap offline",
+        ]
+    )
 
 
 def can_use_rule_based_fallback(user_query: str) -> bool:
