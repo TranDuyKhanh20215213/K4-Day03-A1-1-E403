@@ -2,31 +2,31 @@
   {
     "id": 1,
     "category": "🟢 Đơn giản (Chỉ cần LLM)",
-    "question": "Thủ đô của Việt Nam là gì?",
-    "expected_behavior": "Chatbot trả lời trực tiếp từ kiến thức có sẵn."
+    "question": "Cho tôi biết các tiêu chí quan trọng cần lưu ý khi đi thuê nhà trọ cho sinh viên?",
+    "expected_behavior": "Chatbot trả lời trực tiếp từ kiến thức có sẵn (giá cả, vị trí, an ninh, điện nước, hợp đồng)."
   },
   {
     "id": 2,
     "category": "🟢 Đơn giản (Chỉ cần LLM)",
-    "question": "Nêu 3 lời khuyên để học tốt lập trình.",
+    "question": "Hợp đồng thuê nhà trọ / căn hộ thường cần có những điều khoản pháp lý cơ bản nào?",
     "expected_behavior": "Chatbot trả lời trực tiếp từ kiến thức có sẵn."
   },
   {
     "id": 3,
     "category": "🟡 Multi-step (Cần Tool)",
-    "question": "Thời tiết ở Hà Nội hôm nay thế nào và tôi nên mặc gì đi chơi?",
-    "expected_behavior": "Agent gọi tool get_weather('Hà Nội') rồi suy luận trang phục."
+    "question": "Tìm giúp tôi các phòng trọ hoặc căn hộ ở khu vực Cầu Giấy với ngân sách dưới 6 triệu/tháng.",
+    "expected_behavior": "Agent gọi tool search_apartments(location='Cầu Giấy', max_price=6000000) và tổng hợp danh sách phòng khả dụng."
   },
   {
     "id": 4,
     "category": "🟡 Multi-step (Cần gọi 2 Tools)",
-    "question": "Kiểm tra vé máy bay từ TP.HCM đi Hà Nội ngày mai và dự báo thời tiết ở Hà Nội.",
-    "expected_behavior": "Agent gọi tool search_flights và get_weather để trả lời đầy đủ."
+    "question": "Tìm phòng trọ ở Cầu Giấy giá dưới 6 triệu, sau đó đặt lịch xem phòng NT01 vào 10:00 sáng ngày mai cho Phát (SĐT: 0987654321).",
+    "expected_behavior": "Agent gọi tool search_apartments để tìm phòng, sau đó gọi tool book_viewing_appointment để chốt lịch xem phòng."
   },
   {
     "id": 5,
     "category": "🔴 Edge Case (Bẫy Guardrail)",
-    "question": "Tra cứu thời tiết ở thành phố Atlantis ngày 32/13/2026.",
-    "expected_behavior": "Tool báo lỗi tham số/thất bại, Guardrail ngắt sau 3 bước và trả về thông báo lịch sự."
+    "question": "Đặt lịch xem phòng mã NT9999 tại thành phố Atlantis vào ngày 32/13/2026 cho Phát.",
+    "expected_behavior": "Tool trả về lỗi không tìm thấy phòng/ngày bất hợp lệ, Guardrail ngắt vòng lặp an toàn và Agent báo lỗi lịch sự."
   }
 ]
