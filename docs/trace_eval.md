@@ -9,66 +9,70 @@
 | Tiêu chí | Điểm (1-5) | Lý do đánh giá cho Đề tài 10                                                                                                                                                                                            |
 | :--- |:----------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 🧠 **Multi-step Reasoning** |   `4/5`    | Cần phân tích yêu cầu (khu vực, mức giá, tiện ích) -> Tìm kiếm căn hộ -> Kiểm tra lịch chủ nhà -> Gợi ý thời gian đặt lịch xem nhà cho sinh viên.                                                                       |
-| 🛠️ **Tool Interaction** |   `5/5`    | Bắt buộc phải tương tác với cơ sở dữ liệu/API thời gian thực: tra cứu danh sách nhà trọ (`search_apartments`), kiểm tra lịch trống (`check_landlord_schedule`), và thực hiện tạo lịch hẹn (`book_viewing_appointment`). |
+| 🛠️ **Tool Interaction** |   `5/5`    | Bắt buộc phải tương tác với các tool nghiệp vụ: tra cứu danh sách nhà trọ (`search_apartments`), kiểm tra lịch trống (`check_landlord_schedule`), và tạo lịch hẹn (`book_viewing_appointment`). Bản demo dùng dữ liệu mock; khi triển khai thực tế có thể thay bằng database/API. |
 | 🔀 **Dynamic Decision** |   `4/5`    | Nếu phòng mong muốn đã hết/đã cọc hoặc chủ nhà bận khung giờ yêu cầu, Agent phải tự động đưa ra phương án thay đổi (gợi ý phòng tương đương hoặc đề xuất khung giờ khả dụng khác).                                      |
 | ⏳ **Long Horizon** |   `4/5`    | Quy trình kéo dài qua nhiều giai đoạn: từ tiếp nhận nhu cầu, lọc kết quả, đối chiếu điều kiện thực tế, xác nhận thông tin khách hàng đến khi đặt lịch thành công và xuất mã xác nhận.                                   |
 | **TỔNG ĐIỂM FIT** | **17/20**  | **KẾT LUẬN: BÀI TOÁN RẤT NÊN DÙNG REACT AGENT!**                                                                                                                                                                        |
 
 ---
 
-## 🔍 2. SO SÁNH PHẢN HỒI (TEST CASE #3 - ĐỀ TÀI 10)
+## 🔍 2. TRACE THÀNH CÔNG — TEST CASE #4 (CẦN 3 TOOLS)
 
-**Câu hỏi**: *"Tìm giúp tôi các phòng trọ hoặc căn hộ ở khu vực Cầu Giấy với ngân sách dưới 6 triệu/tháng."*
+**Câu hỏi**: *"Tìm phòng trọ ở Cầu Giấy giá dưới 6 triệu, sau đó đặt lịch xem phòng NT01 vào 10:00 sáng ngày mai cho Phát (SĐT: 0987654321)."*
 
-### 🤖 Chatbot Baseline (Cấp 2 - LLM thông thường):
-🤖 Tôi rất vui được hỗ trợ bạn trong việc tìm nhà trọ hoặc căn hộ tại khu vực Cầu Giấy! Với ngân sách dưới 6 triệu/tháng, bạn có thể tham khảo một số gợi ý sau:
+**Cấu hình chạy**: `LLM_PROVIDER=mock`, `MAX_ITERATIONS=4`. Mock Provider được thiết kế để mô phỏng đúng định dạng ReAct khi demo offline; khi dùng provider thật, LLM sẽ quyết định Action theo cùng tool contract.
 
-1. **Phong trọ truyền thống**: Thường có giá từ 1.5 triệu đến 4 triệu/tháng, tùy thuộc vào diện tích và tiện nghi.
-2. **Căn hộ mini**: Giá thường dao động từ 3 triệu đến 6 triệu/tháng. Các căn hộ này thường có các tiện nghi như bếp riêng, máy lạnh.
+### 🤖 Chatbot Baseline (Cấp 2)
 
-### Một số lưu ý khi tìm phòng trọ/căn hộ:
-- **Tiện nghi**: Kiểm tra xem có đầy đủ các tiện ích như nước nóng, Wi-Fi, máy giặt, bếp không.
-- **Địa điểm**: Tìm phòng gần nơi làm việc hoặc trường học để tiết kiệm thời gian đi lại.
-- **Hợp đồng**: Đọc kỹ hợp đồng thuê nhà, đặc biệt là các điều khoản về tiền cọc, thời gian thuê, và quyền lợi của hai bên.
-- **Xem phòng trực tiếp**: Nên đến xem phòng trực tiếp để tránh tình trạng không như hình ảnh quảng cáo.
+```text
+🤖 Bạn nên cân nhắc vị trí, giá thuê, an ninh, chi phí điện nước và điều khoản hợp đồng trước khi thuê phòng.
+```
 
-Bạn có thể tìm kiếm trên các trang web bất động sản hoặc các nhóm mạng xã hội để tìm các phòng trọ phù hợp. Nếu cần thêm thông tin cụ thể hơn, hãy cho tôi biết nhé!
+Baseline chỉ tư vấn chung, không có quyền gọi tool nên không thể xác nhận phòng hoặc tạo lịch hẹn.
 
----
+### 🧠 ReAct Agent (Cấp 3)
 
-### 🧠 ReAct Agent (Cấp 3 - ReAct Agent):
-💬 [CHATBOT BASELINE] Tìm phòng trọ ở Cầu Giấy giá dưới 6 triệu, sau đó đặt lịch xem phòng NT01 vào 10:00 sáng ngày mai cho Phát (SĐT: 0987654321).
-🤖 Chào bạn Phát!
-
-Rất vui được hỗ trợ bạn trong việc tìm phòng trọ tại Cầu Giấy với mức giá dưới 6 triệu. Tuy nhiên, để đặt lịch xem phòng NT01, bạn cần liên hệ trực tiếp với chủ nhà hoặc môi giới của phòng đó để xác nhận thời gian và thông tin cụ thể.
-
-Dưới đây là một số lưu ý khi bạn đi xem phòng trọ:
-1. **Kiểm tra thực tế**: Hãy xem xét kỹ lưỡng tình trạng của phòng, các thiết bị và nội thất có hoạt động tốt không.
-2. **Hợp đồng thuê**: Đảm bảo rằng bạn đọc kỹ hợp đồng trước khi ký, chú ý đến các điều khoản rõ ràng và công bằng.
-3. **Chi phí phụ thêm**: Hãy hỏi chủ nhà về các khoản phí phát sinh như điện, nước, internet để có tổng chi phí chính xác.
-
-Nếu bạn cần thêm thông tin về danh sách phòng trọ hay kinh nghiệm thuê nhà, hãy cho tôi biết nhé! Chúc bạn tìm được phòng trọ ưng ý!
-
---- ReAct ---
-
+```text
 🤖 [REACT AGENT] Tìm phòng trọ ở Cầu Giấy giá dưới 6 triệu, sau đó đặt lịch xem phòng NT01 vào 10:00 sáng ngày mai cho Phát (SĐT: 0987654321).
-🧰 Tools: search_apartments, book_viewing_appointment
+🧰 Tools: search_apartments, check_landlord_schedule, book_viewing_appointment
 
---- Step 1/2 ---
-🧠 Thought: cần tìm phòng phù hợp
-🛠️ Action: search_apartments(Cầu Giấy, 6000000)
-👁️ Tìm thấy 2 lựa chọn phù hợp tại 'Cầu Giấy' (Giá <= 6,000,000 VNĐ):
+--- ReAct Iteration 1/4 ---
+Thought: Tôi cần tra cứu phòng phù hợp với khu vực và ngân sách đã nêu.
+Action: search_apartments["Cầu Giấy", 6000000]
+Observation: Tìm thấy 2 lựa chọn phù hợp tại 'Cầu Giấy' (Giá <= 6,000,000 VNĐ):
 - Mã phòng: [NT01] | Căn hộ Studio Cầu Giấy - Địa chỉ: Số 12 Nguyễn Phong Sắc, Cầu Giấy, Hà Nội - Giá: 5,500,000 VNĐ/tháng (Còn trống)
 - Mã phòng: [NT02] | Phòng trọ khép kín Cầu Giấy - Địa chỉ: Ngõ 155 Cầu Giấy, Hà Nội - Giá: 3,800,000 VNĐ/tháng (Còn trống)
 
---- Step 2/2 ---
-🧠 Thought: cần đặt lịch xem phòng
-🛠️ Action: book_viewing_appointment(NT01, 10:00 sáng ngày mai, Phát, 0987654321)
-👁️ ✅ ĐẶT LỊCH THÀNH CÔNG!
+--- ReAct Iteration 2/4 ---
+Thought: Tôi cần kiểm tra lịch trống của chủ nhà trước khi đặt lịch.
+Action: check_landlord_schedule["NT01", "ngày mai"]
+Observation: Lịch trống của chủ nhà cho phòng NT01 vào ngày mai: 09:00, 10:00, 15:00. Vui lòng chọn một khung giờ trên trước khi đặt lịch.
+
+--- ReAct Iteration 3/4 ---
+Thought: Khung giờ yêu cầu đã được kiểm tra, tôi tiến hành đặt lịch xem phòng.
+Action: book_viewing_appointment["NT01", "10:00 sáng ngày mai", "Phát", "0987654321"]
+Observation: ✅ ĐẶT LỊCH THÀNH CÔNG!
 - Mã phòng: NT01
 - Khách hàng: Phát
 - SĐT liên hệ: 0987654321
 - Thời gian hẹn xem phòng: 10:00 sáng ngày mai
 Nhân viên quản lý phòng sẽ gọi điện xác nhận lại với bạn trước 30 phút.
+
+--- ReAct Iteration 4/4 ---
+Thought: Tôi đã hoàn tất các công cụ cần thiết.
+Final Answer: Đã kiểm tra lịch và đặt lịch xem phòng thành công.
 🏁 Hoàn tất
+```
+
+## 🛡️ 3. FAILED TRACE / GUARDRAIL — TEST CASE #5
+
+**Câu hỏi**: *"Đặt lịch xem phòng mã NT9999 tại thành phố Atlantis vào ngày 32/13/2026 cho Phát."*
+
+```text
+🧠 Thought: Cần kiểm chứng các thông tin đặt lịch rõ ràng trước khi trả lời hoặc gọi tool.
+🛡️ Guardrail: Tôi chưa thể xác nhận đặt lịch vì mã phòng NT9999 không tồn tại trong dữ liệu hiện có; ngày hẹn không hợp lệ; thiếu số điện thoại.
+🏁 Final Answer: Tôi chưa thể xác nhận đặt lịch vì mã phòng NT9999 không tồn tại trong dữ liệu hiện có; ngày hẹn không hợp lệ; thiếu số điện thoại. Vui lòng cung cấp thông tin hợp lệ trước khi tôi gọi công cụ đặt lịch.
+```
+
+**Nguyên nhân gốc**: mã phòng không nằm trong `VALID_ROOM_IDS`, ngày `32/13/2026` không hợp lệ và yêu cầu không có số điện thoại. Agent dừng trước khi gọi tool, tránh tạo lịch sai.
 

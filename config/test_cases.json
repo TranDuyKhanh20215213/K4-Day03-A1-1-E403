@@ -21,7 +21,7 @@
     "id": 4,
     "category": "🟡 Multi-step (Cần gọi 2 Tools)",
     "question": "Tìm phòng trọ ở Cầu Giấy giá dưới 6 triệu, sau đó đặt lịch xem phòng NT01 vào 10:00 sáng ngày mai cho Phát (SĐT: 0987654321).",
-    "expected_behavior": "Agent gọi tool search_apartments để tìm phòng, sau đó gọi tool book_viewing_appointment để chốt lịch xem phòng."
+    "expected_behavior": "Agent gọi search_apartments để tìm phòng, check_landlord_schedule để kiểm tra giờ trống, rồi book_viewing_appointment để chốt lịch xem phòng."
   },
   {
     "id": 5,
