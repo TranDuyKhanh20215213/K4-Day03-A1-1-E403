@@ -137,14 +137,11 @@ class MockProvider(BaseLLMProvider):
 
     @staticmethod
     def _extract_query_and_trace(prompt: str) -> tuple[str, str]:
-        """Tách câu hỏi và trace do app tạo từ ReAct prompt."""
-        query_match = re.search(
-            r"User Query:\s*(.*?)\n\s*Available tools:",
-            prompt,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
+        """Tách dữ liệu động từ prompt có cấu trúc XML đơn giản."""
+        query_match = re.search(r"<user_query>\s*(.*?)\s*</user_query>", prompt, flags=re.IGNORECASE | re.DOTALL)
+        trace_match = re.search(r"<trace>\s*(.*?)\s*</trace>", prompt, flags=re.IGNORECASE | re.DOTALL)
         query = query_match.group(1).strip() if query_match else ""
-        trace = prompt.partition("Trace so far:")[2]
+        trace = trace_match.group(1).strip() if trace_match else ""
         return query, trace
 
     @staticmethod
