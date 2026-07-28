@@ -1,0 +1,40 @@
+flowchart TD
+    %% 🌟 SƠ ĐỒ HYBRID FLOWCHART ARCHITECTURE (ĐỀ TÀI 10: TRỢ LÝ TÌM & ĐẶT LỊCH XEM NHÀ TRỌ)
+    
+    A["👤 User Input (Câu hỏi/Yêu cầu từ người dùng)"] --> B{"🧠 Intent Classifier / Router\n(Phân loại ý định người dùng)"}
+
+    %% 🟢 ROUTE 1: SIMPLE KNOWLEDGE PATH (CHATBOT BASELINE)
+    B -- "Câu hỏi đơn giản / Tư vấn chung\n(Kinh nghiệm, pháp lý, lưu ý thuê nhà)" --> C["💬 Chatbot Baseline Path (LLM Direct)"]
+    C --> C1["LLM Provider (Sinh câu trả lời trực tiếp)"]
+    C1 --> C2["Trả lời trực tiếp không gọi Tool"]
+    C2 --> Z["🏁 Final Output (Phản hồi cho người dùng)"]
+
+    %% 🟡 ROUTE 2: COMPLEX ACTION PATH (REACT AGENT)
+    B -- "Yêu cầu tra cứu / Đặt lịch xem phòng\n(Cần dữ liệu thực tế hoặc thao tác)" --> D["🤖 ReAct Agent Path (Thought-Action Loop)"]
+    
+    subgraph ReActLoop ["🔄 Vòng Lặp ReAct Agent & Safeguards"]
+        D --> E["🧠 Thought: Suy luận bước tiếp theo & chọn Tool"]
+        E --> F{"🛠️ Check Tool Specs & Arguments"}
+        
+        F -- "1. Tra cứu phòng trọ" --> G["Action: search_apartments(location, max_price)"]
+        F -- "2. Đặt lịch xem phòng" --> H["Action: book_viewing_appointment(room_id, date_time, name, phone)"]
+        
+        G --> I["👁️ Observation: Kết quả tra cứu từ Database"]
+        H --> I
+        
+        I --> J{"🛡️ Guardrails Check\n(MAX_ITERATIONS = 3)"}
+        
+        J -- "Thành công / Đủ thông tin" --> K["Thought: Đã đủ thông tin để trả lời"]
+        J -- "Chưa đủ thông tin / Đạt Max Iterations" --> L["🛡️ Safe Fallback / Hướng dẫn thêm"]
+    end
+
+    K --> Z
+    L --> Z
+    
+    %% Styles
+    style A fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style B fill:#ffe6cc,stroke:#d79b00,stroke-width:2px
+    style C fill:#d5e8d4,stroke:#82b366,stroke-width:2px
+    style D fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
+    style J fill:#f8cecc,stroke:#b85450,stroke-width:2px
+    style Z fill:#e1d5e7,stroke:#9673a6,stroke-width:2px
