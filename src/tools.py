@@ -75,6 +75,4 @@ def search_flights(origin: str, destination: str) -> str:
 AVAILABLE_TOOLS = {
     "search_apartments": search_apartments,
     "book_viewing_appointment": book_viewing_appointment,
-    "get_weather": get_weather,
-    "search_flights": search_flights,
 }
